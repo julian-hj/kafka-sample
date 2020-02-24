@@ -1,0 +1,8 @@
+---
+applications:
+- name: ksql-server
+  env:
+    KSQL_BOOTSTRAP_SERVERS: "kafka-service.default:9092"
+    KSQL_OPTS: "-Dksql.service.id=iss_test -Dlisteners=http://0.0.0.0:8080/"
+  docker:
+    image: "cfpersi/ksql-server-4-cf:latest"
