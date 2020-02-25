@@ -10,7 +10,9 @@ It is tested on Kind, but should also run on other k8s clusters.
 1. Install cf-for-k8s
 
 2. Install zookeeper, kafka, and a kafka k8s service by appling the yml files in
-   this directory.  Note that the kafka-service doesn't include a NodePort or
+   this directory:
+   `kubectl apply -f .`
+   Note that the kafka-service doesn't include a NodePort or
    LoadBalancer, so kafka will only be available on the k8s internal network at
    `kafka-service.default:9092`
    Note also that the kafka broker is pre-populated with a topic called
@@ -39,6 +41,14 @@ It is tested on Kind, but should also run on other k8s clusters.
    (KAFKA_TOPIC='iss-location', VALUE_FORMAT='JSON');`
 
 7. To prove that it works, query the stream:
-   `select * from loc_stream emit changes`
+   `select * from loc_stream emit changes;`
    You should see messages every 30 seconds.
 
+8. Add a persistent query to publish transformed data to a second topic:
+   `create stream flat_loc with(kafka_topic='flat-loc',
+   value_format='delimited') as select TIMESTAMPTOSTRING(timestamp * 1000,
+   'yyyy-MM-dd HH:mm:ss') AS date, cast(iss_position->latitude as double) as
+   latitude, cast(iss_position->longitude as double) as longitude from
+   loc_stream;`
+   Note: this topic is deliberately output as comma delimited, but json works
+   too.
