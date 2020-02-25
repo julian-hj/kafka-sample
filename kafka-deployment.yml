@@ -25,4 +25,4 @@ spec:
         - name: KAFKA_BROKER_ID
           value: "0"
         - name: KAFKA_CREATE_TOPICS
-          value: admintome-test:1:1
+          value: iss-location:1:1
