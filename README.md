@@ -11,7 +11,9 @@ It is tested on Kind, but should also run on other k8s clusters.
 
 2. Install zookeeper, kafka, and a kafka k8s service by appling the yml files in
    this directory:
+   
    `kubectl apply -f .`
+   
    Note that the kafka-service doesn't include a NodePort or
    LoadBalancer, so kafka will only be available on the k8s internal network at
    `kafka-service.default:9092`
@@ -23,6 +25,7 @@ It is tested on Kind, but should also run on other k8s clusters.
 
 4. Launch the producer application that fetches the iss location payload and
    publishes it to the `iss-location` topic every 30 seconds:
+   
    `cf push test-producer -o cfpersi/kafka-iss-producer -u process`
 
    Note: We need to push the app with a `process` health check because it is
@@ -32,7 +35,8 @@ It is tested on Kind, but should also run on other k8s clusters.
 5. Start up th ksql cli.  When running on Kind, since we need to reach the ksql
    server through cf routing on localhost:80, we have to use the cloudfoundry 
    dns name, but use the `--net=host` option so that the container shares the
-   localhost network adapter: 
+   localhost network adapter:
+   
    `docker run --net=host -it confluentinc/cp-ksql-cli http://ksql-server.vcap.me:80`
 
 6. In ksql, create a KSQL stream that parses the topic we just produced: 
@@ -41,14 +45,18 @@ It is tested on Kind, but should also run on other k8s clusters.
    (KAFKA_TOPIC='iss-location', VALUE_FORMAT='JSON');`
 
 7. To prove that it works, query the stream:
+
    `select * from loc_stream emit changes;`
+   
    You should see messages every 30 seconds.
 
 8. Add a persistent query to publish transformed data to a second topic:
+
    `create stream flat_loc with(kafka_topic='flat-loc',
    value_format='delimited') as select TIMESTAMPTOSTRING(timestamp * 1000,
    'yyyy-MM-dd HH:mm:ss') AS date, cast(iss_position->latitude as double) as
    latitude, cast(iss_position->longitude as double) as longitude from
    loc_stream;`
+
    Note: this topic is deliberately output as comma delimited, but json works
    too.
